@@ -11,11 +11,12 @@ EDINET/TDnet から取得した日本株の財務データと終値のテクニ�
    ```env
    APP_COMPANY_NAME="Your Company"
    APP_EMAIL_ADDRESS="you@example.com"
-   CHANNEL_ACCESS_TOKEN=""
-   CHANNEL_SECRET=""
+   LINE_CHANNEL_ACCESS_TOKEN=""
+   LINE_CHANNEL_SECRET=""
    LINE_TARGET_USER_ID=""
    ```
-3. サンプルの証券コード対応は `data/mappings/code_mapping.json` に格納しています。必要に応じて拡張してください。
+3. GitHub Actions で自動通知する場合は、リポジトリの **Settings → Secrets → Actions** に `LINE_CHANNEL_ACCESS_TOKEN` と `LINE_TARGET_USER_ID` を登録してください。
+4. サンプルの証券コード対応は `data/mappings/code_mapping.json` に格納しています。必要に応じて拡張してください。
 
 ## 実行方法
 ```bash

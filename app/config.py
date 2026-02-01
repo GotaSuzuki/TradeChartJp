@@ -40,11 +40,13 @@ def get_config() -> AppConfig:
         download_dir=os.getenv("APP_DOWNLOAD_DIR", defaults.download_dir),
         tdnet_base_url=os.getenv("TDNET_BASE_URL", defaults.tdnet_base_url),
         price_provider=os.getenv("PRICE_PROVIDER", defaults.price_provider),
-        line_channel_access_token=os.getenv(
-            "CHANNEL_ACCESS_TOKEN", defaults.line_channel_access_token
+        line_channel_access_token=_coalesce_env(
+            ["CHANNEL_ACCESS_TOKEN", "LINE_CHANNEL_ACCESS_TOKEN"],
+            defaults.line_channel_access_token,
         ),
-        line_channel_secret=os.getenv(
-            "CHANNEL_SECRET", defaults.line_channel_secret
+        line_channel_secret=_coalesce_env(
+            ["CHANNEL_SECRET", "LINE_CHANNEL_SECRET"],
+            defaults.line_channel_secret,
         ),
         line_target_user_id=os.getenv(
             "LINE_TARGET_USER_ID", defaults.line_target_user_id
@@ -73,3 +75,11 @@ def _float_env(name: str, default: float) -> float:
         return float(value)
     except ValueError:
         return default
+
+
+def _coalesce_env(names, default):
+    for name in names:
+        value = os.getenv(name)
+        if value:
+            return value
+    return default
