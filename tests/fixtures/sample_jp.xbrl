@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xbrli:xbrl xmlns:xbrli="http://www.xbrl.org/2003/instance"
+            xmlns:jpcrp030000-asr="http://disclosure.edinet-fsa.go.jp/taxonomy/jpcrp030000-asr/crp/2023-03-31"
+            xmlns:ifrs-full="http://xbrl.ifrs.org/taxonomy/2019-03-27/ifrs-full">
+  <xbrli:context id="CurrentYear">
+    <xbrli:period>
+      <xbrli:endDate>2023-03-31</xbrli:endDate>
+    </xbrli:period>
+  </xbrli:context>
+  <xbrli:context id="PriorYear">
+    <xbrli:period>
+      <xbrli:endDate>2022-03-31</xbrli:endDate>
+    </xbrli:period>
+  </xbrli:context>
+  <xbrli:unit id="JPY">
+    <xbrli:measure>xbrli:JPY</xbrli:measure>
+  </xbrli:unit>
+  <jpcrp030000-asr:NetSales contextRef="CurrentYear" unitRef="JPY">1000000</jpcrp030000-asr:NetSales>
+  <jpcrp030000-asr:NetSales contextRef="PriorYear" unitRef="JPY">900000</jpcrp030000-asr:NetSales>
+  <jpcrp030000-asr:OperatingIncome contextRef="CurrentYear" unitRef="JPY">200000</jpcrp030000-asr:OperatingIncome>
+  <jpcrp030000-asr:OperatingIncome contextRef="PriorYear" unitRef="JPY">150000</jpcrp030000-asr:OperatingIncome>
+  <jpcrp030000-asr:ProfitLossAttributableToOwnersOfParent contextRef="CurrentYear" unitRef="JPY">120000</jpcrp030000-asr:ProfitLossAttributableToOwnersOfParent>
+  <jpcrp030000-asr:NetCashProvidedByUsedInOperatingActivities contextRef="CurrentYear" unitRef="JPY">180000</jpcrp030000-asr:NetCashProvidedByUsedInOperatingActivities>
+</xbrli:xbrl>

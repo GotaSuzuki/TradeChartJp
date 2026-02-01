@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.env
+.venv/
+
+# Streamlit
+.streamlit/
+
+# Data/Cache
+/data/cache/
+data/raw_jp/
+data/alerts.json
+
+# OS
+.DS_Store
