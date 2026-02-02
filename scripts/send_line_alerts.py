@@ -32,7 +32,7 @@ def main() -> None:
 
     config = get_config()
     now = datetime.now(ZoneInfo("Asia/Tokyo"))
-    if not args.force and now.hour not in {12, 15}:
+    if not args.force and now.hour not in {11, 16}:
         print(f"[INFO] Current JST hour {now.hour} is not a notification window.")
         return
 

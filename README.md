@@ -32,11 +32,11 @@ streamlit run streamlit_app_jp.py
 詳細な設計は `DESIGN_JP.md` を参照してください。
 
 ## LINE 通知のスケジュール実行
-`scripts/send_line_alerts.py` を 12時と15時 (日本時間) に実行すると、登録済み RSI アラートが閾値を下回った銘柄のみ LINE に通知します。cron 例:
+`scripts/send_line_alerts.py` を 11時と16時 (日本時間) に実行すると、登録済み RSI アラートが閾値を下回った銘柄のみ LINE に通知します。cron 例:
 
 ```
-0 3,6 * * * cd /Users/suzukigouta/Documents/chartJP && /usr/bin/env bash -lc 'source .venv/bin/activate && python scripts/send_line_alerts.py'
+0 2,7 * * * cd /Users/suzukigouta/Documents/chartJP && /usr/bin/env bash -lc 'source .venv/bin/activate && python scripts/send_line_alerts.py'
 ```
 
-※cron は UTC 基準なので JST 12/15 時刻に合わせて調整してください。LINE トークンは `.env` に設定が必要です。
+※cron は UTC 基準なので JST 11/16 時刻に合わせて調整してください。LINE トークンは `.env` に設定が必要です。
 # TradeChartJp
