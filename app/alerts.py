@@ -77,14 +77,13 @@ def add_alert(*, ticker: str, alert_type: str, threshold: float, note: str = "")
             "threshold": threshold,
             "note": note,
         }
-        response = (
-            client.table(SUPABASE_TABLE)
-            .insert(payload)
-            .select("*")
-            .execute()
-        )
-        inserted = response.data[0] if response.data else payload
-        return _normalize_supabase_rows([inserted])[0]
+        response = client.table(SUPABASE_TABLE).insert(payload).execute()
+        if response.data:
+            return _normalize_supabase_rows(response.data)[0]
+        return {
+            "id": "",
+            **payload,
+        }
 
     alert = {
         "id": str(uuid4()),
@@ -118,7 +117,6 @@ def update_alert(alert_id: str, **changes) -> bool:
             client.table(SUPABASE_TABLE)
             .update(payload)
             .eq("id", alert_id)
-            .select("*")
             .execute()
         )
         return bool(response.data)
