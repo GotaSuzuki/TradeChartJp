@@ -14,7 +14,7 @@ SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_KEY") or os.getenv(
     "SUPABASE_SERVICE_ROLE_KEY"
 )
-SUPABASE_TABLE = os.getenv("SUPABASE_ALERTS_TABLE", "alertsJP")
+SUPABASE_TABLE = os.getenv("SUPABASE_ALERTS_TABLE", "alertJP")
 _SUPABASE_CLIENT = None
 
 
@@ -97,17 +97,12 @@ def add_alert(*, ticker: str, alert_type: str, threshold: float, note: str = "")
     alerts.append(alert)
     save_alerts(alerts)
     return alert
-        alerts = load_alerts()
-        alerts.append(alert)
-        save_alerts(alerts)
-    return alert
 
 
 def delete_alert(alert_id: str) -> None:
     if _supabase_enabled():
         client = _get_supabase_client()
-        supabase_id = _to_supabase_id(alert_id)
-        client.table(SUPABASE_TABLE).delete().eq("id", supabase_id).execute()
+        client.table(SUPABASE_TABLE).delete().eq("id", alert_id).execute()
         return
     alerts = [alert for alert in load_alerts() if alert.get("id") != alert_id]
     save_alerts(alerts)
@@ -119,11 +114,10 @@ def update_alert(alert_id: str, **changes) -> bool:
         payload = {key: value for key, value in changes.items() if value is not None}
         if not payload:
             return False
-        supabase_id = _to_supabase_id(alert_id)
         response = (
             client.table(SUPABASE_TABLE)
             .update(payload)
-            .eq("id", supabase_id)
+            .eq("id", alert_id)
             .select("*")
             .execute()
         )
@@ -160,9 +154,4 @@ def _normalize_supabase_rows(rows: List[Dict[str, object]]) -> List[Dict[str, st
 
 
 def _to_supabase_id(value: Optional[str]):
-    if value is None:
-        return None
-    try:
-        return int(str(value))
-    except (TypeError, ValueError):
-        return value
+    return value
