@@ -417,6 +417,13 @@ def _append_rsi(price_df: pd.DataFrame) -> pd.DataFrame:
     return compute_price_rsi(price_df)
 
 
+def _estimate_price_for_rsi_series(current_price, current_rsi, target_rsi):
+    try:
+        return current_price * (target_rsi / current_rsi)
+    except Exception:
+        return float("nan")
+
+
 def _render_latest_price(price_df: pd.DataFrame):
     clean = price_df.dropna(subset=["Close"]) if not price_df.empty else pd.DataFrame()
     if clean.empty:
