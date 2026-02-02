@@ -69,6 +69,23 @@ def save_alerts(alerts: List[Dict[str, str]]) -> None:
 
 
 def add_alert(*, ticker: str, alert_type: str, threshold: float, note: str = "") -> Dict[str, str]:
+    if _supabase_enabled():
+        client = _get_supabase_client()
+        payload = {
+            "ticker": ticker.upper(),
+            "type": alert_type,
+            "threshold": threshold,
+            "note": note,
+        }
+        response = (
+            client.table(SUPABASE_TABLE)
+            .insert(payload)
+            .select("*")
+            .execute()
+        )
+        inserted = response.data[0] if response.data else payload
+        return _normalize_supabase_rows([inserted])[0]
+
     alert = {
         "id": str(uuid4()),
         "ticker": ticker.upper(),
@@ -76,10 +93,10 @@ def add_alert(*, ticker: str, alert_type: str, threshold: float, note: str = "")
         "threshold": threshold,
         "note": note,
     }
-    if _supabase_enabled():
-        client = _get_supabase_client()
-        client.table(SUPABASE_TABLE).insert(alert).execute()
-    else:
+    alerts = load_alerts()
+    alerts.append(alert)
+    save_alerts(alerts)
+    return alert
         alerts = load_alerts()
         alerts.append(alert)
         save_alerts(alerts)
@@ -89,7 +106,8 @@ def add_alert(*, ticker: str, alert_type: str, threshold: float, note: str = "")
 def delete_alert(alert_id: str) -> None:
     if _supabase_enabled():
         client = _get_supabase_client()
-        client.table(SUPABASE_TABLE).delete().eq("id", alert_id).execute()
+        supabase_id = _to_supabase_id(alert_id)
+        client.table(SUPABASE_TABLE).delete().eq("id", supabase_id).execute()
         return
     alerts = [alert for alert in load_alerts() if alert.get("id") != alert_id]
     save_alerts(alerts)
@@ -101,7 +119,14 @@ def update_alert(alert_id: str, **changes) -> bool:
         payload = {key: value for key, value in changes.items() if value is not None}
         if not payload:
             return False
-        response = client.table(SUPABASE_TABLE).update(payload).eq("id", alert_id).execute()
+        supabase_id = _to_supabase_id(alert_id)
+        response = (
+            client.table(SUPABASE_TABLE)
+            .update(payload)
+            .eq("id", supabase_id)
+            .select("*")
+            .execute()
+        )
         return bool(response.data)
 
     alerts = load_alerts()
@@ -121,9 +146,10 @@ def update_alert(alert_id: str, **changes) -> bool:
 def _normalize_supabase_rows(rows: List[Dict[str, object]]) -> List[Dict[str, str]]:
     normalized: List[Dict[str, str]] = []
     for row in rows:
+        row_id = row.get("id")
         normalized.append(
             {
-                "id": str(row.get("id")),
+                "id": str(row_id) if row_id is not None else "",
                 "ticker": str(row.get("ticker", "")),
                 "type": str(row.get("type", "")),
                 "threshold": row.get("threshold"),
@@ -131,3 +157,12 @@ def _normalize_supabase_rows(rows: List[Dict[str, object]]) -> List[Dict[str, st
             }
         )
     return normalized
+
+
+def _to_supabase_id(value: Optional[str]):
+    if value is None:
+        return None
+    try:
+        return int(str(value))
+    except (TypeError, ValueError):
+        return value

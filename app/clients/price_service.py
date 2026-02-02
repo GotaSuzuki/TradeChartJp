@@ -24,9 +24,15 @@ class PriceService:
             raise ValueError(f"Unsupported provider: {self.provider}")
 
         ticker = self._to_yfinance_symbol(code)
-        df = yf.download(ticker, period=period, auto_adjust=True, progress=False)
+        options = dict(period=period, auto_adjust=True, progress=False)
+        options["group_by"] = "column"
+        df = yf.download(ticker, **options)
         if isinstance(df.columns, pd.MultiIndex):
-            df.columns = df.columns.get_level_values(0)
+            try:
+                df = df.droplevel(-1, axis=1)
+            except ValueError:
+                df.columns = [col[0] for col in df.columns]
+        df = df.loc[:, ~df.columns.duplicated()]
         df = df.reset_index().sort_values("Date")
         return PriceResult(dataframe=df, source="yfinance")
 

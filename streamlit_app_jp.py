@@ -58,7 +58,7 @@ def main() -> None:
         st.header("パラメータ")
         code_input = st.text_input("証券コード", value="7203")
         years = st.slider("取得年数", 1, 10, value=config.filings_years)
-        fetch_clicked = st.button("財務データを取得", use_container_width=True)
+        fetch_clicked = st.button("財務データを取得", width="stretch")
         tech_period_label = st.selectbox(
             "テクニカル期間",
             list(TECH_PERIOD_OPTIONS.keys()),
@@ -151,7 +151,7 @@ def render_metric_panels(df: pd.DataFrame, cagr_map: Dict[str, Optional[float]])
                 labels={"year": "年度", "value_m": _build_axis_label(label, unit, suffix)},
             )
             fig.update_layout(margin=dict(l=6, r=6, t=20, b=6), height=260)
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width="stretch")
 
 
 def render_technical_section(code: str, period_label: str, config) -> None:
@@ -242,7 +242,7 @@ def render_technical_section(code: str, period_label: str, config) -> None:
                 showgrid=False,
             )
         )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
 
     if latest_price is not None and latest_rsi is not None:
         st.caption(f"最新終値: {latest_price:,.2f} 円 / RSI: {latest_rsi:.1f}")
@@ -349,7 +349,7 @@ def render_alerts_page() -> None:
     display_df["現在RSI"] = display_df["現在RSI"].map(lambda x: f"{x:.1f}" if pd.notna(x) else "-")
     display_df["アラートRSI"] = display_df["アラートRSI"].map(lambda x: f"{x:.1f}" if pd.notna(x) else "-")
     display_df["目標株価"] = display_df["目標株価"].map(lambda x: f"{x:,.2f}" if pd.notna(x) else "-")
-    st.dataframe(display_df, use_container_width=True, hide_index=True)
+    st.dataframe(display_df, width="stretch", hide_index=True)
     option_tuples = [
         (
             f"{company_map.get(a['ticker'], a['ticker'])} ({a['ticker']}) - {a['type']} <= {a['threshold']}",

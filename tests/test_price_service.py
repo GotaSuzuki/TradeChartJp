@@ -15,7 +15,7 @@ def test_download_uses_yfinance(monkeypatch):
         "Close": [100, 110],
     })
 
-    def fake_download(ticker, period, auto_adjust, progress):  # type: ignore[override]
+    def fake_download(ticker, **kwargs):  # type: ignore[override]
         assert ticker == "7203.T"
         return frame.set_index("Date")
 
