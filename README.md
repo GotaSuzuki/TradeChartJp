@@ -16,9 +16,9 @@ EDINET/TDnet から取得した日本株の財務データと終値のテクニ�
    LINE_TARGET_USER_ID=""
    SUPABASE_URL=""
    SUPABASE_SERVICE_KEY=""
-   SUPABASE_ALERTS_TABLE="alertJP"
+   SUPABASE_ALERTS_TABLE="alertsJP"
    ```
-3. Supabase に永続保存する場合は、プロジェクトに `alertJP` テーブル（列: `id` text PRIMARY KEY, `ticker` text NOT NULL, `type` text NOT NULL, `threshold` double precision NOT NULL, `note` text）を作成し、`.env` に `SUPABASE_URL`, `SUPABASE_SERVICE_KEY` (または Service Role key) を設定してください。
+3. Supabase に永続保存する場合は、プロジェクトに `alertsJP` テーブル（列: `id` text PRIMARY KEY, `ticker` text NOT NULL, `type` text NOT NULL, `threshold` double precision NOT NULL, `note` text）を作成し、`.env` に `SUPABASE_URL`, `SUPABASE_SERVICE_KEY` (または Service Role key) を設定してください。
 4. GitHub Actions で自動通知する場合は、リポジトリの **Settings → Secrets → Actions** に `LINE_CHANNEL_ACCESS_TOKEN` と `LINE_TARGET_USER_ID` を登録してください。
 5. サンプルの証券コード対応は `data/mappings/code_mapping.json` に格納しています。必要に応じて拡張してください。
 
