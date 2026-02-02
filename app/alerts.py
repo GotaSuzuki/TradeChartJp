@@ -3,14 +3,50 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
-from typing import List, Dict
+from typing import List, Dict, Optional
 from uuid import uuid4
 
 ALERTS_FILE = Path("data/alerts.json")
 
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_KEY") or os.getenv(
+    "SUPABASE_SERVICE_ROLE_KEY"
+)
+SUPABASE_TABLE = os.getenv("SUPABASE_ALERTS_TABLE", "alertsJP")
+_SUPABASE_CLIENT = None
+
+
+def _supabase_enabled() -> bool:
+    return bool(SUPABASE_URL and SUPABASE_KEY)
+
+
+def _get_supabase_client():
+    global _SUPABASE_CLIENT
+    if not _supabase_enabled():
+        return None
+    if _SUPABASE_CLIENT is None:
+        try:
+            from supabase import create_client
+        except ImportError as exc:  # pragma: no cover - optional dependency
+            raise RuntimeError(
+                "Supabase support requires the 'supabase' package."
+            ) from exc
+
+        _SUPABASE_CLIENT = create_client(SUPABASE_URL, SUPABASE_KEY)
+    return _SUPABASE_CLIENT
+
 
 def load_alerts() -> List[Dict[str, str]]:
+    if _supabase_enabled():
+        client = _get_supabase_client()
+        try:
+            response = client.table(SUPABASE_TABLE).select("*").execute()
+        except Exception:
+            return []
+        return _normalize_supabase_rows(response.data or [])
+
     if not ALERTS_FILE.exists():
         return []
     try:
@@ -24,13 +60,15 @@ def load_alerts() -> List[Dict[str, str]]:
 
 
 def save_alerts(alerts: List[Dict[str, str]]) -> None:
+    if _supabase_enabled():
+        # Supabase operations are handled per action; bulk save is not needed.
+        return
     ALERTS_FILE.parent.mkdir(parents=True, exist_ok=True)
     with ALERTS_FILE.open("w", encoding="utf-8") as f:
         json.dump(alerts, f, ensure_ascii=False, indent=2)
 
 
 def add_alert(*, ticker: str, alert_type: str, threshold: float, note: str = "") -> Dict[str, str]:
-    alerts = load_alerts()
     alert = {
         "id": str(uuid4()),
         "ticker": ticker.upper(),
@@ -38,17 +76,34 @@ def add_alert(*, ticker: str, alert_type: str, threshold: float, note: str = "")
         "threshold": threshold,
         "note": note,
     }
-    alerts.append(alert)
-    save_alerts(alerts)
+    if _supabase_enabled():
+        client = _get_supabase_client()
+        client.table(SUPABASE_TABLE).insert(alert).execute()
+    else:
+        alerts = load_alerts()
+        alerts.append(alert)
+        save_alerts(alerts)
     return alert
 
 
 def delete_alert(alert_id: str) -> None:
+    if _supabase_enabled():
+        client = _get_supabase_client()
+        client.table(SUPABASE_TABLE).delete().eq("id", alert_id).execute()
+        return
     alerts = [alert for alert in load_alerts() if alert.get("id") != alert_id]
     save_alerts(alerts)
 
 
 def update_alert(alert_id: str, **changes) -> bool:
+    if _supabase_enabled():
+        client = _get_supabase_client()
+        payload = {key: value for key, value in changes.items() if value is not None}
+        if not payload:
+            return False
+        response = client.table(SUPABASE_TABLE).update(payload).eq("id", alert_id).execute()
+        return bool(response.data)
+
     alerts = load_alerts()
     updated = False
     for alert in alerts:
@@ -61,3 +116,18 @@ def update_alert(alert_id: str, **changes) -> bool:
     if updated:
         save_alerts(alerts)
     return updated
+
+
+def _normalize_supabase_rows(rows: List[Dict[str, object]]) -> List[Dict[str, str]]:
+    normalized: List[Dict[str, str]] = []
+    for row in rows:
+        normalized.append(
+            {
+                "id": str(row.get("id")),
+                "ticker": str(row.get("ticker", "")),
+                "type": str(row.get("type", "")),
+                "threshold": row.get("threshold"),
+                "note": row.get("note", ""),
+            }
+        )
+    return normalized

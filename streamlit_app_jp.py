@@ -311,7 +311,45 @@ def render_alerts_page() -> None:
         "threshold",
     ]
     df = df[display_cols]
-    st.dataframe(df, use_container_width=True, hide_index=True)
+
+    latest_data = []
+    unique_tickers = df["ticker"].unique()
+    for ticker in unique_tickers:
+        price_df = _get_price_history(ticker, "yfinance")
+        if price_df.empty:
+            latest_data.append({"ticker": ticker, "current_price": None, "current_rsi": None})
+            continue
+        price_df = _append_rsi(price_df)
+        latest_price = price_df.dropna(subset=["Close"]).iloc[-1]["Close"] if not price_df.dropna(subset=["Close"]).empty else None
+        latest_rsi_df = price_df.dropna(subset=["RSI"])
+        latest_rsi = latest_rsi_df.iloc[-1]["RSI"] if not latest_rsi_df.empty else None
+        latest_data.append(
+            {
+                "ticker": ticker,
+                "current_price": latest_price,
+                "current_rsi": latest_rsi,
+            }
+        )
+
+    latest_df = pd.DataFrame(latest_data)
+    merged = df.merge(latest_df, on="ticker", how="left")
+    merged["目標株価"] = _estimate_price_for_rsi_series(
+        merged["current_price"], merged["current_rsi"], merged["threshold"]
+    )
+    display_mapping = {
+        "ticker": "銘柄コード",
+        "type": "タイプ",
+        "current_price": "現在株価",
+        "current_rsi": "現在RSI",
+        "threshold": "アラートRSI",
+        "目標株価": "目標株価",
+    }
+    display_df = merged.rename(columns=display_mapping)
+    display_df["現在株価"] = display_df["現在株価"].map(lambda x: f"{x:,.2f}" if pd.notna(x) else "-")
+    display_df["現在RSI"] = display_df["現在RSI"].map(lambda x: f"{x:.1f}" if pd.notna(x) else "-")
+    display_df["アラートRSI"] = display_df["アラートRSI"].map(lambda x: f"{x:.1f}" if pd.notna(x) else "-")
+    display_df["目標株価"] = display_df["目標株価"].map(lambda x: f"{x:,.2f}" if pd.notna(x) else "-")
+    st.dataframe(display_df, use_container_width=True, hide_index=True)
     option_tuples = [
         (
             f"{company_map.get(a['ticker'], a['ticker'])} ({a['ticker']}) - {a['type']} <= {a['threshold']}",

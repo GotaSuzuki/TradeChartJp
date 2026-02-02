@@ -6,3 +6,4 @@ yfinance
 python-dotenv
 lxml
 pytest
+supabase
