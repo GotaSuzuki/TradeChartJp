@@ -48,8 +48,9 @@ def get_config() -> AppConfig:
             ["CHANNEL_SECRET", "LINE_CHANNEL_SECRET"],
             defaults.line_channel_secret,
         ),
-        line_target_user_id=os.getenv(
-            "LINE_TARGET_USER_ID", defaults.line_target_user_id
+        line_target_user_id=_coalesce_env(
+            ["LINE_TARGET_USER_ID"],
+            defaults.line_target_user_id,
         ),
         rsi_alert_threshold=_float_env(
             "RSI_ALERT_THRESHOLD", defaults.rsi_alert_threshold
