@@ -72,18 +72,16 @@ def add_alert(*, ticker: str, alert_type: str, threshold: float, note: str = "")
     if _supabase_enabled():
         client = _get_supabase_client()
         payload = {
+            "id": str(uuid4()),
             "ticker": ticker.upper(),
             "type": alert_type,
             "threshold": threshold,
             "note": note,
         }
-        response = client.table(SUPABASE_TABLE).insert(payload, returning="representation").execute()
+        response = client.table(SUPABASE_TABLE).insert(payload).execute()
         if response.data:
             return _normalize_supabase_rows(response.data)[0]
-        return {
-            "id": "",
-            **payload,
-        }
+        return payload
 
     alert = {
         "id": str(uuid4()),
