@@ -43,4 +43,13 @@ streamlit run streamlit_app_jp.py
 ```
 
 ※cron は UTC 基準なので JST 11/16 時刻に合わせて調整してください。LINE トークンは `.env` に設定が必要です。
+
+## Supabase へアラートを追加するCLI
+Supabase を使っている場合、以下のスクリプトで任意のアラートを登録できます。
+
+```bash
+python scripts/add_supabase_alert.py 7203 --threshold 35 --note "年初RSI監視"
+```
+
+環境変数 `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, `SUPABASE_ALERTS_TABLE` を事前に設定してください。設定されていない場合はローカルの `data/alerts.json` に追記されます。
 # TradeChartJp

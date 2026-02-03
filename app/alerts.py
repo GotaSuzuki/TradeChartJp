@@ -77,7 +77,7 @@ def add_alert(*, ticker: str, alert_type: str, threshold: float, note: str = "")
             "threshold": threshold,
             "note": note,
         }
-        response = client.table(SUPABASE_TABLE).insert(payload).execute()
+        response = client.table(SUPABASE_TABLE).insert(payload, returning="representation").execute()
         if response.data:
             return _normalize_supabase_rows(response.data)[0]
         return {

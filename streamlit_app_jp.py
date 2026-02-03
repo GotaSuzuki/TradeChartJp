@@ -298,116 +298,61 @@ def render_alerts_page() -> None:
     st.header("登録済みアラート")
     alerts = load_alerts()
     if not alerts:
-        st.info("アラートはまだありません。")
+        st.info("登録されたアラートはまだありません。ファンダメンタルまたはテクニカルビューから追加できます。")
         return
-    df = pd.DataFrame(alerts)
-    df = df.drop(columns=["note"], errors="ignore")
-    company_map = _load_company_names()
-    df["銘柄"] = df["ticker"].map(lambda code: company_map.get(code, code))
-    display_cols = [
-        "銘柄",
-        "ticker",
-        "type",
-        "threshold",
-    ]
-    df = df[display_cols]
 
-    latest_data = []
-    unique_tickers = df["ticker"].unique()
-    for ticker in unique_tickers:
-        price_df = _get_price_history(ticker, "yfinance")
+    df = pd.DataFrame(alerts)
+    df = df.drop(columns=["id", "note"], errors="ignore")
+    current_data = []
+    for ticker in df["ticker"].unique():
+        price_df = _get_price_history(ticker)
         if price_df.empty:
-            latest_data.append({"ticker": ticker, "current_price": None, "current_rsi": None})
+            current_data.append({"ticker": ticker, "current_price": None, "current_rsi": None})
             continue
         price_df = _append_rsi(price_df)
-        latest_price = price_df.dropna(subset=["Close"]).iloc[-1]["Close"] if not price_df.dropna(subset=["Close"]).empty else None
-        latest_rsi_df = price_df.dropna(subset=["RSI"])
-        latest_rsi = latest_rsi_df.iloc[-1]["RSI"] if not latest_rsi_df.empty else None
-        latest_data.append(
-            {
-                "ticker": ticker,
-                "current_price": latest_price,
-                "current_rsi": latest_rsi,
-            }
+        latest = price_df.dropna(subset=["Close"]).iloc[-1]
+        rsi_df = price_df.dropna(subset=["RSI"])
+        latest_rsi = rsi_df.iloc[-1]["RSI"] if not rsi_df.empty else None
+        current_data.append(
+            {"ticker": ticker, "current_price": latest.get("Close"), "current_rsi": latest_rsi}
         )
 
-    latest_df = pd.DataFrame(latest_data)
-    merged = df.merge(latest_df, on="ticker", how="left")
-    merged["目標株価"] = _estimate_price_for_rsi_series(
-        merged["current_price"], merged["current_rsi"], merged["threshold"]
+    latest_df = pd.DataFrame(current_data)
+    df = df.merge(latest_df, on="ticker", how="left")
+    df["alert_price"] = _estimate_price_for_rsi_series(
+        df["current_price"], df["current_rsi"], df["threshold"]
     )
-    display_mapping = {
-        "ticker": "銘柄コード",
+    column_map = {
+        "ticker": "ティッカー",
         "type": "タイプ",
+        "threshold": "アラートRSI",
         "current_price": "現在株価",
         "current_rsi": "現在RSI",
-        "threshold": "アラートRSI",
-        "目標株価": "目標株価",
+        "alert_price": "目標株価",
     }
-    display_df = merged.rename(columns=display_mapping)
-    display_df["現在株価"] = display_df["現在株価"].map(lambda x: f"{x:,.2f}" if pd.notna(x) else "-")
-    display_df["現在RSI"] = display_df["現在RSI"].map(lambda x: f"{x:.1f}" if pd.notna(x) else "-")
-    display_df["アラートRSI"] = display_df["アラートRSI"].map(lambda x: f"{x:.1f}" if pd.notna(x) else "-")
-    display_df["目標株価"] = display_df["目標株価"].map(lambda x: f"{x:,.2f}" if pd.notna(x) else "-")
-    st.dataframe(display_df, width="stretch", hide_index=True)
-    option_tuples = [
-        (
-            f"{company_map.get(a['ticker'], a['ticker'])} ({a['ticker']}) - {a['type']} <= {a['threshold']}",
-            a["id"],
-        )
+    df = df.rename(columns=column_map)
+    df["現在株価"] = df["現在株価"].map(lambda x: f"{x:,.2f}" if pd.notna(x) else "-")
+    df["現在RSI"] = df["現在RSI"].map(lambda x: f"{x:.1f}" if pd.notna(x) else "-")
+    df["目標株価"] = df["目標株価"].map(lambda x: f"{x:,.2f}" if pd.notna(x) else "-")
+    st.dataframe(df, width="stretch", hide_index=True)
+
+    options = {
+        f"{a['ticker']} - {a['type']} <= {a['threshold']}": a.get("id")
         for a in alerts
-    ]
-    labels = [label for label, _ in option_tuples]
-    ids = {label: alert_id for label, alert_id in option_tuples}
-
-    if labels:
-        edit_label = st.selectbox("編集するアラート", labels, key="edit-alert")
-        selected_id = ids[edit_label]
-        selected_alert = next((a for a in alerts if a.get("id") == selected_id), None)
-        if selected_alert:
-            with st.form("edit-alert-form"):
-                new_ticker = st.text_input(
-                    "証券コード",
-                    value=selected_alert.get("ticker", ""),
-                )
-                new_threshold = st.number_input(
-                    "RSI閾値を編集",
-                    min_value=0.0,
-                    max_value=100.0,
-                    value=float(selected_alert.get("threshold", 40.0)),
-                    step=1.0,
-                )
-                submitted = st.form_submit_button("アラートを更新")
-                if submitted:
-                    trimmed = new_ticker.strip()
-                    if not trimmed:
-                        st.warning("証券コードを入力してください。")
-                    elif update_alert(
-                        selected_id,
-                        ticker=trimmed,
-                        threshold=float(new_threshold),
-                    ):
-                        st.success("アラートを更新しました。再読込で反映されます。")
-                    else:
-                        st.error("更新に失敗しました。")
-
-    delete_label = st.selectbox("削除するアラート", labels, key="delete-alert")
-    if st.button("選択したアラートを削除"):
-        delete_alert(ids[delete_label])
-        st.success("アラートを削除しました。再読込で反映されます。")
+        if a.get("id")
+    }
+    if options:
+        selected = st.selectbox("削除するアラート", list(options.keys()))
+        if st.button("選択したアラートを削除"):
+            delete_alert(options[selected])
+            st.success("アラートを削除しました。再読込で反映されます。")
 
 
-def _load_company_names() -> Dict[str, str]:
-    mapping_path = Path("data/mappings/companies.csv")
-    if not mapping_path.exists():
-        return {}
-    data = pd.read_csv(mapping_path)
-    return dict(zip(data["code"].astype(str), data["name"]))
 
 
-def _get_price_history(code: str, provider: str) -> pd.DataFrame:
+def _get_price_history(code: str, provider: str | None = None) -> pd.DataFrame:
     try:
-        service = PriceService(provider=provider)
+        service = PriceService(provider=provider or "yfinance")
         return service.download(code).dataframe
     except Exception:
         return pd.DataFrame()
