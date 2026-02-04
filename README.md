@@ -53,3 +53,12 @@ python scripts/add_supabase_alert.py 7203 --threshold 35 --note "年初RSI監視
 
 環境変数 `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, `SUPABASE_ALERTS_TABLE` を事前に設定してください。設定されていない場合はローカルの `data/alerts.json` に追記されます。
 # TradeChartJp
+
+### 初期アラートのシード
+`data/default_alerts.json` に初期監視銘柄を定義してあります。Supabase に初期登録する場合は環境変数を設定した上で次のコマンドを一度実行してください。
+
+```
+PYTHONPATH=. python scripts/add_supabase_alert.py 7203 --threshold 33 --note "seed"
+```
+
+または複数追加したい場合は `PYTHONPATH=. python3 - <<'PY' ...` 例を README の上で説明 (update)??
