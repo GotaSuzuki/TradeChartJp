@@ -18,6 +18,8 @@ import sys
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
+from pathlib import Path
+
 from app.alerts import load_alerts
 from app.clients.price_service import PriceService
 from app.config import get_config
@@ -40,7 +42,7 @@ def main() -> None:
         print("[WARN] LINE credentials are not configured. Skipping notifications.")
         return
 
-    alerts = [alert for alert in load_alerts() if alert.get("type") == "RSI"]
+    alerts = _load_monitoring_alerts()
     if not alerts:
         print("[INFO] No RSI alerts registered.")
         return
@@ -109,6 +111,33 @@ def _build_message(ticker: str, price: float, rsi_value: float, threshold: float
         f"{ticker}: RSI {rsi_value:.1f} (<= {threshold:.1f})\n"
         f"株価: {price:,.2f}"
     )
+
+
+def _load_monitoring_alerts() -> List[Dict[str, str]]:
+    alerts = [alert for alert in load_alerts() if alert.get("type") == "RSI"]
+    if alerts:
+        return alerts
+
+    seed_path = Path("data/default_alerts.json")
+    if not seed_path.exists():
+        return []
+    try:
+        data = json.loads(seed_path.read_text())
+    except json.JSONDecodeError:
+        return []
+    normalized = []
+    for entry in data:
+        if not entry.get("ticker"):
+            continue
+        normalized.append(
+            {
+                "ticker": entry.get("ticker"),
+                "type": entry.get("type", "RSI"),
+                "threshold": entry.get("threshold", 40.0),
+                "note": entry.get("note", ""),
+            }
+        )
+    return normalized
 
 
 if __name__ == "__main__":
