@@ -1,11 +1,10 @@
 [
-  {"ticker": "6857", "type": "RSI", "threshold": 40.0, "note": "seed"},
-  {"ticker": "285A", "type": "RSI", "threshold": 40.0, "note": "seed"},
-  {"ticker": "6525", "type": "RSI", "threshold": 40.0, "note": "seed"},
-  {"ticker": "3110", "type": "RSI", "threshold": 40.0, "note": "seed"},
-  {"ticker": "6871", "type": "RSI", "threshold": 40.0, "note": "seed"},
-  {"ticker": "5803", "type": "RSI", "threshold": 40.0, "note": "seed"},
-  {"ticker": "7011", "type": "RSI", "threshold": 40.0, "note": "seed"},
-  {"ticker": "7735", "type": "RSI", "threshold": 90.0, "note": "seed"},
-  {"ticker": "7203", "type": "RSI", "threshold": 33.0, "note": "seed"}
+  { "ticker": "6857", "type": "RSI", "threshold": 40.0, "note": "seed" },
+  { "ticker": "285A", "type": "RSI", "threshold": 40.0, "note": "seed" },
+  { "ticker": "6525", "type": "RSI", "threshold": 40.0, "note": "seed" },
+  { "ticker": "3110", "type": "RSI", "threshold": 40.0, "note": "seed" },
+  { "ticker": "6871", "type": "RSI", "threshold": 40.0, "note": "seed" },
+  { "ticker": "5803", "type": "RSI", "threshold": 40.0, "note": "seed" },
+  { "ticker": "7011", "type": "RSI", "threshold": 40.0, "note": "seed" },
+  { "ticker": "7203", "type": "RSI", "threshold": 33.0, "note": "seed" }
 ]
