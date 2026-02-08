@@ -23,6 +23,7 @@ class AppConfig:
     line_channel_access_token: Optional[str] = None
     line_channel_secret: Optional[str] = None
     line_target_user_id: Optional[str] = None
+    line_notifications_enabled: bool = True
     rsi_alert_threshold: float = 40.0
 
     @property
@@ -52,6 +53,9 @@ def get_config() -> AppConfig:
             ["LINE_TARGET_USER_ID"],
             defaults.line_target_user_id,
         ),
+        line_notifications_enabled=_bool_env(
+            "LINE_NOTIFICATIONS_ENABLED", defaults.line_notifications_enabled
+        ),
         rsi_alert_threshold=_float_env(
             "RSI_ALERT_THRESHOLD", defaults.rsi_alert_threshold
         ),
@@ -76,6 +80,18 @@ def _float_env(name: str, default: float) -> float:
         return float(value)
     except ValueError:
         return default
+
+
+def _bool_env(name: str, default: bool) -> bool:
+    value = os.getenv(name)
+    if value is None:
+        return default
+    normalized = value.strip().lower()
+    if normalized in {"1", "true", "yes", "on"}:
+        return True
+    if normalized in {"0", "false", "no", "off"}:
+        return False
+    return default
 
 
 def _coalesce_env(names, default):

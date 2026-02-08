@@ -5,6 +5,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from datetime import datetime
+import json
 from pathlib import Path
 from zoneinfo import ZoneInfo
 from typing import Dict, List, Tuple
@@ -33,6 +34,9 @@ def main() -> None:
     args = parser.parse_args()
 
     config = get_config()
+    if not config.line_notifications_enabled:
+        print("[INFO] LINE notifications are disabled by LINE_NOTIFICATIONS_ENABLED.")
+        return
     now = datetime.now(ZoneInfo("Asia/Tokyo"))
     if not args.force and now.hour not in {11, 16}:
         print(f"[INFO] Current JST hour {now.hour} is not a notification window.")
