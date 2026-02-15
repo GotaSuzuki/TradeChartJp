@@ -19,7 +19,7 @@ class AppConfig:
     line_channel_access_token: Optional[str] = None
     line_channel_secret: Optional[str] = None
     line_target_user_id: Optional[str] = None
-    rsi_alert_threshold: float = 80.0
+    rsi_alert_threshold: float = 40.0
     supabase_url: Optional[str] = None
     supabase_service_role_key: Optional[str] = None
     alpaca_api_key_id: Optional[str] = None
