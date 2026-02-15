@@ -22,36 +22,39 @@ from app.market_data import (
     normalize_ticker_for_display,
 )
 from app.notifier import LineMessagingNotifier
+from app.ticker_labels import get_ticker_label
 
 DEFAULT_TICKERS = ["285A", "6857", "6525", "3110", "6871", "5803", "4062", "7011", "5805"]
 
 
 def check_ticker(ticker: str, threshold: float) -> dict[str, object] | None:
     display_ticker = normalize_ticker_for_display(ticker)
+    label = get_ticker_label(display_ticker)
     price_df = download_price_history(display_ticker)
     if price_df.empty:
-        print(f"{display_ticker}: 価格データを取得できませんでした", file=sys.stderr)
+        print(f"{label}: 価格データを取得できませんでした", file=sys.stderr)
         return None
 
     enriched = compute_rsi(price_df)
     latest = enriched.dropna(subset=["RSI"])
     if latest.empty:
-        print(f"{display_ticker}: RSIを計算できませんでした", file=sys.stderr)
+        print(f"{label}: RSIを計算できませんでした", file=sys.stderr)
         return None
 
     row = latest.iloc[-1]
     rsi_value = row["RSI"]
     data_date = pd.to_datetime(row["Date"]).date()
     if rsi_value <= threshold:
-        print(f"{display_ticker}: RSI {rsi_value:.1f} が閾値以下です")
+        print(f"{label}: RSI {rsi_value:.1f} が閾値以下です")
         return {
             "ticker": display_ticker,
+            "label": label,
             "rsi": float(rsi_value),
             "threshold": float(threshold),
             "date": data_date,
         }
     else:
-        print(f"{display_ticker}: RSI {rsi_value:.1f} は閾値を上回っています")
+        print(f"{label}: RSI {rsi_value:.1f} は閾値を上回っています")
     return None
 
 
@@ -65,7 +68,7 @@ def format_alert_message(matches: list[dict[str, object]]) -> str:
 
     lines = [header]
     for match in matches:
-        ticker = match.get("ticker", "")
+        ticker = match.get("label") or match.get("ticker", "")
         rsi_value = match.get("rsi", 0.0)
         threshold = match.get("threshold", 0.0)
         line = f"{ticker} RSI {rsi_value:.1f} (<= {threshold:.1f})"

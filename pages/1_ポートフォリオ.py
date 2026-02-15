@@ -16,6 +16,7 @@ from app.market_data import (
     normalize_ticker_for_display,
 )
 from app.portfolio import delete_holding, load_holdings, upsert_holding
+from app.ticker_labels import get_ticker_label
 
 st.set_page_config(page_title="ポートフォリオ", layout="wide")
 
@@ -54,8 +55,8 @@ def _display_label(ticker: str) -> str:
     ticker = normalize_ticker_for_display(ticker)
     alias = FUND_ALIAS.get(ticker)
     if alias:
-        return alias
-    return ticker
+        return f"{ticker} {alias}"
+    return get_ticker_label(ticker)
 
 
 @st.cache_data(show_spinner=False, ttl=3600)
@@ -176,7 +177,7 @@ with left_col:
                 st.warning("保有数は0より大きく入力してください。")
             else:
                 upsert_holding(ticker=ticker, shares=int(shares_input))
-                st.success(f"{ticker} を登録しました。")
+                st.success(f"{_display_label(ticker)} を登録しました。")
 
     st.divider()
 

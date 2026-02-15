@@ -16,6 +16,7 @@ from app.market_data import (
     normalize_ticker_for_display,
 )
 from app.metrics import compute_cagr, compute_yoy, to_dataframe
+from app.ticker_labels import get_ticker_label
 
 METRIC_LABELS = {
     "revenue": "売上高",
@@ -149,7 +150,7 @@ def render_metric_panels(df, cagr_map):
 
 
 def render_technical_section(ticker: str, period_label: str):
-    st.subheader("テクニカル表示")
+    st.subheader(f"テクニカル表示: {get_ticker_label(ticker)}")
     price_df = _get_price_history(ticker)
     if price_df is None or price_df.empty:
         st.info("価格データを取得できませんでした。")
@@ -471,7 +472,7 @@ def render_alert_form(ticker: str, config, location: str) -> None:
                 st.warning("先に銘柄を取得してください。")
                 return
             add_alert(ticker=ticker, alert_type="RSI", threshold=threshold, note=note)
-            st.success(f"{ticker} のRSIアラートを登録しました。")
+            st.success(f"{get_ticker_label(ticker)} のRSIアラートを登録しました。")
 
 
 def render_alerts_page() -> None:
@@ -530,7 +531,7 @@ def render_alerts_page() -> None:
         "alert_price": "目標株価",
     }
     df = df.rename(columns=column_map)
-    df["銘柄"] = df["銘柄"].map(normalize_ticker_for_display)
+    df["銘柄"] = df["銘柄"].map(get_ticker_label)
     df["現在株価"] = df.apply(
         lambda row: _format_price(row["現在株価"], row.get("currency", "JPY")),
         axis=1,
@@ -542,7 +543,10 @@ def render_alerts_page() -> None:
     )
     st.dataframe(df[["銘柄", "タイプ", "アラートRSI", "現在株価", "現在RSI", "目標株価"]], use_container_width=True, hide_index=True)
 
-    options = {f"{a['ticker']} - {a['type']} <= {a['threshold']}": a["id"] for a in alerts}
+    options = {
+        f"{get_ticker_label(a['ticker'])} - {a['type']} <= {a['threshold']}": a["id"]
+        for a in alerts
+    }
     selected = st.selectbox("削除するアラート", list(options.keys()))
     if st.button("選択したアラートを削除"):
         delete_alert(options[selected])
