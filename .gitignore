@@ -1,17 +1,32 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+
 # Python
 __pycache__/
-*.py[cod]
-*.so
-.env
+*.pyc
+*.pyo
+*.pyd
+*.pkl
+.ipynb_checkpoints
+
+# Virtual environments
 .venv/
+ENV/
 
-# Streamlit
-.streamlit/
+# Environment / secrets
+.env
+.env.local
 
-# Data/Cache
-/data/cache/
-data/raw_jp/
+# Data & cache
+/data/
+!data/processed/
+!data/raw/
 data/alerts.json
 
-# OS
-.DS_Store
+# Streamlit cache
+.streamlit/
+
+# Others
+*.log
