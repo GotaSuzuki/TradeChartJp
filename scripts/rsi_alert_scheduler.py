@@ -27,7 +27,7 @@ def parse_times(value: str) -> list[dt_time]:
             times.append(dt_time(int(hour), int(minute)))
         except ValueError:
             continue
-    return times or [dt_time(4, 30), dt_time(7, 0)]
+    return times or [dt_time(7, 0), dt_time(12, 30)]
 
 
 def next_run(now: datetime, schedule_times: list[dt_time]) -> datetime:
@@ -45,8 +45,8 @@ def main() -> None:
     parser.add_argument("tickers", nargs="*", help="監視する銘柄コード (例: 7203 8306)")
     parser.add_argument(
         "--times",
-        default="06:00,23:35",
-        help="JSTでの実行時刻をカンマ区切りで指定 (例: '06:00,23:35')",
+        default="07:00,12:30",
+        help="JSTでの実行時刻をカンマ区切りで指定 (例: '07:00,12:30')",
     )
     args = parser.parse_args()
 
